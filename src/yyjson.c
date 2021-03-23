@@ -1495,8 +1495,15 @@ yyjson_mut_val* unsafe_yyjson_mut_set_pointer(yyjson_mut_doc* doc,
 static_inline bool yyjson_mut_pointer_set_str(yyjson_mut_doc* doc, yyjson_mut_val* val, const char* path_str, size_t len, const char* val_str, size_t val_len) {
     if (doc && val && path_str && len && *path_str == '/') {
         if ((val = mut_set_pointer(doc, val, path_str, len))) {
-            val->tag = ((uint64_t)val_len << YYJSON_TAG_BIT) | YYJSON_TYPE_STR;
-            val->uni.str = val_len && val_str ? unsafe_yyjson_mut_strncpy(doc, val_str, val_len) : NULL;
+			// allow null str
+			if (val_len && val_str) {
+				val->tag = ((uint64_t)val_len << YYJSON_TAG_BIT) | YYJSON_TYPE_STR;
+				val->uni.str = unsafe_yyjson_mut_strncpy(doc, val_str, val_len);
+			}
+			else {
+				val->tag = YYJSON_TYPE_STR;
+				val->uni.str = "";
+			}
             return true;
         }
     }
